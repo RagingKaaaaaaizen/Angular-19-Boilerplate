@@ -16,3 +16,18 @@ add description if naay bagong install pakages
 //Use for git merge on terminal
 
 -- git config --global core.editor "code --wait"
+
+//To solve for @app/_services problem
+
+step 1: Create a tsconfig.json file on root dir
+step 2: copy paste this to tsconfig.json
+
+{
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@app/*": ["src/app/*"]
+    }
+  }
+}
+
