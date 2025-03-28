@@ -12,3 +12,7 @@ add description if naay bagong install pakages
 // Use to install dependencies for accounts folder
 
 -- npm install @angular/core @angular/common @angular/forms @angular/router rxjs bootstrap
+
+//Use for git merge on terminal
+
+-- git config --global core.editor "code --wait"
