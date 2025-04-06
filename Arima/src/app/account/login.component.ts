@@ -1,16 +1,21 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { UntypedFormBuilder, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { first } from 'rxjs/operators';
+import { CommonModule } from '@angular/common';
 
 import { AccountService, AlertService } from '@app/_services';
 
-@Component({ templateUrl: 'login.component.html' })
+@Component({
+  templateUrl: 'login.component.html',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, RouterModule]
+})
 export class LoginComponent implements OnInit {
-  form: UntypedFormGroup;
+  form!: UntypedFormGroup;
   loading = false;
   submitted = false;
-  returnUrl: string;
+  returnUrl!: string;
 
   constructor(
     private formBuilder: UntypedFormBuilder,
@@ -45,7 +50,7 @@ export class LoginComponent implements OnInit {
     }
 
     this.loading = true;
-    this.accountService.login(this.f.email.value, this.f.password.value)
+    this.accountService.login(this.f['email'].value, this.f['password'].value)
       .pipe(first())
       .subscribe({
         next: () => {

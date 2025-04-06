@@ -1,15 +1,20 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { UntypedFormBuilder, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { first } from 'rxjs/operators';
+import { CommonModule } from '@angular/common';
 
 import { AccountService, AlertService } from '@app/_services';
 import { MustMatch } from '@app/_helpers';
 
-@Component({ templateUrl: 'update.component.html' })
+@Component({ 
+    templateUrl: 'update.component.html',
+    standalone: true,
+    imports: [CommonModule, ReactiveFormsModule, RouterModule]
+})
 export class UpdateComponent implements OnInit {
     account = this.accountService.accountValue;
-    form: UntypedFormGroup;
+    form!: UntypedFormGroup;
     loading = false;
     submitted = false;
     deleting = false;
@@ -50,7 +55,7 @@ export class UpdateComponent implements OnInit {
         }
 
         this.loading = true;
-        this.accountService.update(this.account.id, this.form.value)
+        this.accountService.update(this.account.id.toString(), this.form.value)
             .pipe(first())
             .subscribe({
                 next: () => {
@@ -67,7 +72,7 @@ export class UpdateComponent implements OnInit {
     onDelete() {
         if (confirm('Are you sure?')) {
             this.deleting = true;
-            this.accountService.delete(this.account.id)
+            this.accountService.delete(this.account.id.toString())
                 .pipe(first())
                 .subscribe(() => {
                     this.alertService.success('Account deleted successfully', { keepAfterRouteChange: true });

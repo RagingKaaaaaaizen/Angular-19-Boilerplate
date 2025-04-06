@@ -11,13 +11,12 @@ import { UpdateComponent } from './update.component';
     imports: [
         CommonModule,
         ReactiveFormsModule,
-        ProfileRoutingModule
-    ],
-    declarations: [
+        ProfileRoutingModule,
         LayoutComponent,
         DetailsComponent,
         UpdateComponent
-    ]
+    ],
+    declarations: []
 })
 export class ProfileModule { }
 

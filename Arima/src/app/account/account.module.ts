@@ -1,8 +1,5 @@
-
 import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { NgModule} from '@angular/core';
-import { ReactiveFormsModule} from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
 import { AccountRoutingModule } from './account-routing.module';
@@ -17,15 +14,14 @@ import { ResetPasswordComponent } from './reset-password.component';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    AccountRoutingModule
-  ],
-  declarations: [
+    AccountRoutingModule,
     LayoutComponent,
     LoginComponent,
     RegisterComponent,
     VerifyEmailComponent,
     ForgotPasswordComponent,
     ResetPasswordComponent
-  ]
+  ],
+  declarations: []
 })
 export class AccountModule { }

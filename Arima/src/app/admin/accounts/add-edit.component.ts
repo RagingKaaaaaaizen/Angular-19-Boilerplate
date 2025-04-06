@@ -1,16 +1,21 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { UntypedFormBuilder, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { first } from 'rxjs/operators';
+import { CommonModule } from '@angular/common';
 
 import { AccountService, AlertService } from '@app/_services';
 import { MustMatch } from '@app/_helpers';
 
-@Component({ templateUrl: 'add-edit.component.html' })
+@Component({ 
+  templateUrl: 'add-edit.component.html',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, RouterModule]
+})
 export class AddEditComponent implements OnInit {
-  form: UntypedFormGroup;
-  id: string;
-  isAddMode: boolean;
+  form!: UntypedFormGroup;
+  id!: string;
+  isAddMode!: boolean;
   loading = false;
   submitted = false;
   

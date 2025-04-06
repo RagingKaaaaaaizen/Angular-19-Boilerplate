@@ -1,12 +1,18 @@
 import { Component, OnInit } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { first, finalize } from 'rxjs/operators';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 import { AccountService, AlertService } from '@app/_services';
 
-@Component({ templateUrl: 'forgot-password.component.html' })
+@Component({
+  templateUrl: 'forgot-password.component.html',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, RouterModule]
+})
 export class ForgotPasswordComponent implements OnInit {
-  form: UntypedFormGroup;
+  form!: UntypedFormGroup;
   loading = false;
   submitted = false;
 
@@ -37,7 +43,7 @@ export class ForgotPasswordComponent implements OnInit {
     }
     
     this.loading = true;
-    this.accountService.forgotPassword(this.f.email.value)
+    this.accountService.forgotPassword(this.f['email'].value)
       .pipe(first())
       .pipe(finalize(() => this.loading = false))
       .subscribe({

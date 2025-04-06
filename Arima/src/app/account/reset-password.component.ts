@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { UntypedFormBuilder, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { first, finalize } from 'rxjs/operators';
+import { CommonModule } from '@angular/common';
 
 import { AccountService, AlertService } from '@app/_services';
 import { MustMatch } from '@app/_helpers';
@@ -12,12 +13,16 @@ enum TokenStatus {
   Invalid
 }
 
-@Component({ templateUrl: 'reset-password.component.html' })
+@Component({
+  templateUrl: 'reset-password.component.html',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, RouterModule]
+})
 export class ResetPasswordComponent implements OnInit {
   TokenStatus = TokenStatus;
   tokenStatus = TokenStatus.Validating;
-  token = null;
-  form: UntypedFormGroup;
+  token: string | null = null;
+  form!: UntypedFormGroup;
   loading = false;
   submitted = false;
 
@@ -70,11 +75,17 @@ export class ResetPasswordComponent implements OnInit {
     }
 
     this.loading = true;
-    this.accountService.resetPassword({
-      token: this.token,
-      password: this.f.password.value,
-      confirmPassword: this.f.confirmPassword.value
-    })
+    if (!this.token) {
+      this.alertService.error('No token provided');
+      this.loading = false;
+      return;
+    }
+    
+    this.accountService.resetPassword(
+      this.token,
+      this.f['password'].value,
+      this.f['confirmPassword'].value
+    )
       .pipe(first(),
         finalize(() => this.loading = false))
       .subscribe({
