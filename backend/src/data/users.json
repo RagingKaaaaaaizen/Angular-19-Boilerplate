@@ -1,0 +1,32 @@
+[
+  {
+    "firstName": "Louyi",
+    "lastName": "Etoy",
+    "email": "roamy@gmail.com",
+    "passwordHash": "$2a$10$lnPYPbU0cucEPEgXnwIaYud9DniBXTuWxD2JRBshd6UunhTIwsPiy",
+    "role": "User",
+    "verificationToken": "f33b05c3776d0cecd8e169e87e5bed2ef3e0b0e63e13763ef858bf762989f0e5008227d29f84657d",
+    "id": "1744187595643",
+    "created": 1744187595643
+  },
+  {
+    "firstName": "Romy",
+    "lastName": "Eroy",
+    "email": "romyeroylablab@gmail.com",
+    "passwordHash": "$2a$10$qAPqMN6FHvr06/Z2RkF/SOXDFJc1QRyZkPD.QCAlNFyEEs.LOSp3O",
+    "role": "User",
+    "verificationToken": "bf3efcdc8812ed2d91727bde9235c913c0b3d07ff6418ba4bdf2cd131f3c2a22a10917c90d272332",
+    "id": "1744188327097",
+    "created": 1744188327097
+  },
+  {
+    "firstName": "romyLove",
+    "lastName": "Eroy",
+    "email": "romyloveseroy@gmail.com",
+    "passwordHash": "$2a$10$euTsfwHhmRHNmL/pEHIkV.7LUcjH0g5AJyduEcpif.7kKhh0udX/O",
+    "role": "User",
+    "verificationToken": "ed9fd467416b59e8543591ac9e2fcc4aa9cec815b06449c2498fd49eea8226765fa6a22d1fc97592",
+    "id": "1744188468976",
+    "created": 1744188468976
+  }
+]
