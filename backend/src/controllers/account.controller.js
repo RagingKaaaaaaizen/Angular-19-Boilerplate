@@ -30,13 +30,24 @@ function authenticate(req, res, next) {
 }
 
 function refreshToken(req, res, next) {
-  const token = req.cookies.refreshToken;
+  const token = req.cookies.refreshToken || req.body.token;
   const ipAddress = req.ip;
+
+  // Return error if token is missing
+  if (!token) {
+    return res.status(400).json({ message: 'Refresh token is required' });
+  }
 
   accountService.refreshToken({ token, ipAddress })
     .then(account => {
-      setTokenCookie(res, account.refreshToken);
-      res.json(account);
+      // Check if account and refreshToken exist before setting cookie
+      if (account && account.refreshToken) {
+        setTokenCookie(res, account.refreshToken);
+        res.json(account);
+      } else {
+        // If account exists but has no refreshToken
+        res.status(400).json({ message: 'Invalid refresh token' });
+      }
     })
     .catch(next);
 }

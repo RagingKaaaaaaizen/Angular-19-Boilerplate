@@ -1,8 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const User = require('../models/user.model');
-const RefreshToken = require('../models/refresh-token.model');
+const db = require('./json-db.service');
 const emailService = require('./email.service');
 const config = require('../config/config');
 
@@ -23,7 +22,7 @@ module.exports = {
 };
 
 async function authenticate({ email, password, ipAddress }) {
-  const user = await User.findOne({ email });
+  const user = db.getUserByEmail(email);
 
   if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
     throw 'Email or password is incorrect';
@@ -42,25 +41,55 @@ async function authenticate({ email, password, ipAddress }) {
 }
 
 async function refreshToken({ token, ipAddress }) {
-  const refreshToken = await getRefreshToken(token);
-  const user = await User.findById(refreshToken.user);
-
-  // Replace old refresh token with a new one and save
-  const newRefreshToken = await generateRefreshToken(user, ipAddress);
-  refreshToken.revoked = Date.now();
-  refreshToken.revokedByIp = ipAddress;
-  refreshToken.replacedByToken = newRefreshToken.token;
-  await refreshToken.save();
-
-  // Generate new jwt
-  const jwtToken = generateJwtToken(user);
-
-  // Return basic user info and tokens
-  return {
-    ...basicDetails(user),
-    jwtToken,
-    refreshToken: newRefreshToken.token
-  };
+  if (!token) {
+    throw 'Token is required';
+  }
+  
+  try {
+    const refreshToken = db.getRefreshTokenByToken(token);
+    
+    // Validate refresh token
+    if (!refreshToken) {
+      throw 'Invalid token';
+    }
+    
+    // Check if token is expired or revoked
+    if (refreshToken.revoked) {
+      throw 'Token has been revoked';
+    }
+    
+    // Ensure token hasn't expired
+    const refreshTokenExpiry = new Date(refreshToken.expires);
+    if (refreshTokenExpiry < new Date()) {
+      throw 'Token has expired';
+    }
+    
+    const user = db.getUserById(refreshToken.user);
+    if (!user) {
+      throw 'Unknown user';
+    }
+    
+    // Replace old refresh token with a new one
+    const newRefreshToken = await generateRefreshToken(user, ipAddress);
+    refreshToken.revoked = Date.now();
+    refreshToken.revokedByIp = ipAddress;
+    refreshToken.replacedByToken = newRefreshToken.token;
+    db.updateRefreshToken(refreshToken.token, refreshToken);
+    
+    // Generate new jwt
+    const jwtToken = generateJwtToken(user);
+    
+    // Return basic details and tokens
+    return {
+      ...basicDetails(user),
+      jwtToken,
+      refreshToken: newRefreshToken.token
+    };
+  } catch (error) {
+    // Log the error for debugging
+    console.error('Refresh token error:', error);
+    throw error;
+  }
 }
 
 async function revokeToken({ token, ipAddress }) {
@@ -69,14 +98,14 @@ async function revokeToken({ token, ipAddress }) {
   // Revoke token and save
   refreshToken.revoked = Date.now();
   refreshToken.revokedByIp = ipAddress;
-  await refreshToken.save();
+  db.updateRefreshToken(refreshToken.token, refreshToken);
 }
 
 async function register(params, origin) {
   // Validate
-  if (await User.findOne({ email: params.email })) {
+  if (db.getUserByEmail(params.email)) {
     // Send already registered email if user exists but isn't verified
-    const user = await User.findOne({ email: params.email });
+    const user = db.getUserByEmail(params.email);
     if (!user.isVerified) {
       await sendAlreadyRegisteredEmail(user, origin);
     }
@@ -86,17 +115,17 @@ async function register(params, origin) {
   }
 
   // Create user object
-  const user = new User({
+  const user = {
     firstName: params.firstName,
     lastName: params.lastName,
     email: params.email,
     passwordHash: bcrypt.hashSync(params.password, 10),
     role: params.role || 'User',
     verificationToken: randomTokenString(),
-  });
+  };
 
   // Save user
-  await user.save();
+  db.createUser(user);
 
   // Send verification email
   const emailResponse = await sendVerificationEmail(user, origin);
@@ -110,27 +139,31 @@ async function register(params, origin) {
 }
 
 async function verifyEmail({ token }) {
-  const user = await User.findOne({ verificationToken: token });
+  const user = db.getUserByVerificationToken(token);
 
   if (!user) throw 'Verification failed';
 
-  user.verified = Date.now();
-  user.verificationToken = undefined;
-  await user.save();
+  // Update user
+  db.updateUser(user.id, {
+    verified: Date.now(),
+    verificationToken: undefined
+  });
 }
 
 async function forgotPassword({ email }, origin) {
-  const user = await User.findOne({ email });
+  const user = db.getUserByEmail(email);
 
   // Always return ok response to prevent email enumeration
   if (!user) return { message: 'Email sent with password reset instructions' };
 
   // Create reset token that expires after 24 hours
-  user.resetToken = {
+  const resetToken = {
     token: randomTokenString(),
     expires: new Date(Date.now() + 24 * 60 * 60 * 1000)
   };
-  await user.save();
+  
+  // Update user
+  db.updateUser(user.id, { resetToken });
 
   // Send password reset email
   const emailResponse = await sendPasswordResetEmail(user, origin);
@@ -144,29 +177,24 @@ async function forgotPassword({ email }, origin) {
 }
 
 async function validateResetToken({ token }) {
-  const user = await User.findOne({
-    'resetToken.token': token,
-    'resetToken.expires': { $gt: Date.now() }
-  });
+  const user = db.getUserByResetToken(token);
 
-  if (!user) throw 'Invalid token';
+  if (!user || user.resetToken.expires < new Date()) throw 'Invalid token';
   
   return { message: 'Token is valid' };
 }
 
 async function resetPassword({ token, password }) {
-  const user = await User.findOne({
-    'resetToken.token': token,
-    'resetToken.expires': { $gt: Date.now() }
-  });
+  const user = db.getUserByResetToken(token);
 
-  if (!user) throw 'Invalid token';
+  if (!user || user.resetToken.expires < new Date()) throw 'Invalid token';
 
   // Update password and remove reset token
-  user.passwordHash = bcrypt.hashSync(password, 10);
-  user.passwordReset = Date.now();
-  user.resetToken = undefined;
-  await user.save();
+  db.updateUser(user.id, {
+    passwordHash: bcrypt.hashSync(password, 10),
+    passwordReset: Date.now(),
+    resetToken: undefined
+  });
   
   // Send password changed confirmation email
   const emailResponse = await emailService.sendPasswordChangedEmail(user.email);
@@ -178,70 +206,68 @@ async function resetPassword({ token, password }) {
 }
 
 async function getAll() {
-  const users = await User.find();
+  const users = db.getUsers();
   return users.map(x => basicDetails(x));
 }
 
 async function getById(id) {
-  const user = await getUser(id);
+  const user = getUser(id);
   return basicDetails(user);
 }
 
 async function create(params) {
   // Validate
-  if (await User.findOne({ email: params.email })) {
+  if (db.getUserByEmail(params.email)) {
     throw 'Email "' + params.email + '" is already registered';
   }
 
-  const user = new User(params);
-  user.passwordHash = bcrypt.hashSync(params.password, 10);
-  user.verified = Date.now();
+  const user = {
+    firstName: params.firstName,
+    lastName: params.lastName,
+    email: params.email,
+    passwordHash: bcrypt.hashSync(params.password, 10),
+    role: params.role || 'User',
+    verified: Date.now()
+  };
 
   // Save user
-  await user.save();
-
-  return basicDetails(user);
+  return basicDetails(db.createUser(user));
 }
 
 async function update(id, params) {
-  const user = await getUser(id);
+  const user = getUser(id);
 
   // Validate email if changing
-  if (params.email && user.email !== params.email && await User.findOne({ email: params.email })) {
+  if (params.email && user.email !== params.email && db.getUserByEmail(params.email)) {
     throw 'Email "' + params.email + '" is already taken';
   }
 
   // Hash password if it was entered
   if (params.password) {
     params.passwordHash = bcrypt.hashSync(params.password, 10);
+    delete params.password;
   }
 
-  // Copy params to user and save
-  Object.assign(user, params);
-  user.updated = Date.now();
-  await user.save();
-
-  return basicDetails(user);
+  // Update user
+  const updatedUser = db.updateUser(id, params);
+  return basicDetails(updatedUser);
 }
 
 async function _delete(id) {
-  await User.findByIdAndRemove(id);
+  db.deleteUser(id);
 }
 
 // Helper functions
 
-async function getUser(id) {
-  if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-    throw 'User not found';
-  }
-  const user = await User.findById(id);
+function getUser(id) {
+  const user = db.getUserById(id);
   if (!user) throw 'User not found';
   return user;
 }
 
 async function getRefreshToken(token) {
-  const refreshToken = await RefreshToken.findOne({ token });
-  if (!refreshToken || !refreshToken.isActive) throw 'Invalid token';
+  const refreshToken = db.getRefreshTokenByToken(token);
+  if (!refreshToken || refreshToken.revoked) throw 'Invalid token';
   return refreshToken;
 }
 
@@ -252,19 +278,15 @@ function generateJwtToken(user) {
 
 async function generateRefreshToken(user, ipAddress) {
   // Create a refresh token that expires in 7 days
-  const token = randomTokenString();
-  const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
-  const refreshToken = new RefreshToken({
+  const refreshToken = {
     user: user.id,
-    token,
-    expires,
+    token: randomTokenString(),
+    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     createdByIp: ipAddress
-  });
+  };
 
-  await refreshToken.save();
-
-  return refreshToken;
+  // Save refresh token
+  return db.createRefreshToken(refreshToken);
 }
 
 function randomTokenString() {
@@ -281,10 +303,10 @@ async function sendVerificationEmail(user, origin) {
   if (origin) {
     const verifyUrl = `${origin}/account/verify-email?token=${user.verificationToken}`;
     message = `<p>Please click the below link to verify your email address:</p>
-                <p><a href="${verifyUrl}">${verifyUrl}</a></p>`;
+                 <p><a href="${verifyUrl}">${verifyUrl}</a></p>`;
   } else {
     message = `<p>Please use the below token to verify your email address with the <code>/account/verify-email</code> api route:</p>
-                <p><code>${user.verificationToken}</code></p>`;
+                 <p><code>${user.verificationToken}</code></p>`;
   }
 
   return await emailService.sendVerificationEmail(user.email, user.verificationToken);
