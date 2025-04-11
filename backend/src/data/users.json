@@ -7,7 +7,12 @@
     "role": "User",
     "verificationToken": "f33b05c3776d0cecd8e169e87e5bed2ef3e0b0e63e13763ef858bf762989f0e5008227d29f84657d",
     "id": "1744187595643",
-    "created": 1744187595643
+    "created": 1744187595643,
+    "resetToken": {
+      "token": "bc7941533a67c3741031fe06c0734df0bc2f1b6f01f7acd3f2cbfc5a84e46a9653161f5f2adc3615",
+      "expires": "2025-04-12T00:39:42.920Z"
+    },
+    "updated": 1744331982921
   },
   {
     "firstName": "Romy",
@@ -28,5 +33,40 @@
     "verificationToken": "ed9fd467416b59e8543591ac9e2fcc4aa9cec815b06449c2498fd49eea8226765fa6a22d1fc97592",
     "id": "1744188468976",
     "created": 1744188468976
+  },
+  {
+    "firstName": "ewr",
+    "lastName": "ewr",
+    "email": "as@gmail.com",
+    "passwordHash": "$2a$10$qfl4RJXL8.kT6bDvHwjri.SG7WvrhWHnoN6AwiytRo.gIkZVkDlaK",
+    "role": "User",
+    "verificationToken": "aab01885bb98151c676ef143a43f29985ed62dce3017c9bd991d287a0e2cd42752328f5d2d5111d2",
+    "id": "1744267051919",
+    "created": 1744267051919
+  },
+  {
+    "firstName": "jade",
+    "lastName": "oten",
+    "email": "jade@gmail.edu",
+    "passwordHash": "$2a$10$66T8r0mXUWeht2B6mAs.vuW1imc7KroU/dpuSJ8eHp9nsgkpw1RSi",
+    "role": "User",
+    "verificationToken": "94598d4b8b65ba5e031b303cb5c35c9bcde4951696a7399282f22d1ad6712c3c182730b4ad760295",
+    "id": "1744332026725",
+    "created": 1744332026725,
+    "resetToken": {
+      "token": "e94a91973f00b342f0bf422b8c84104a02fdcd98f0768f826ad774309b5266f4d88365b4b6c79815",
+      "expires": "2025-04-12T00:55:55.123Z"
+    },
+    "updated": 1744332955123
+  },
+  {
+    "firstName": "arima",
+    "lastName": "arima",
+    "email": "arima@gmail.com",
+    "passwordHash": "$2a$10$eGI3srueQ9kb8Tw/NISO5.JsrFuusq8uHQWGbzv1GfT.NTKXPVbWm",
+    "role": "User",
+    "verificationToken": "2637b2ef1430d5aeb6c8089f7860a6f463f2b376fd09d29a48568f8da6fcd78c0834c8902216bd42",
+    "id": "1744334069941",
+    "created": 1744334069941
   }
 ]

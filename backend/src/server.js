@@ -11,9 +11,10 @@ const port = process.env.PORT || 4000;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors({
-  origin: process.env.FRONT_END_URL,
+  origin: process.env.FRONT_END_URL || 'http://localhost:4200',
   credentials: true
 }));
+
 
 // API Routes
 app.use('/accounts', require('./routes/account.routes'));
