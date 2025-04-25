@@ -1,0 +1,408 @@
+{
+  "info": {
+    "name": "User Activation Tests",
+    "description": "Tests for user activation and deactivation functionality",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register Admin User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"firstName\": \"Admin\",\n    \"lastName\": \"User\",\n    \"email\": \"admin@example.com\",\n    \"password\": \"Password1!\",\n    \"role\": \"Admin\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/account/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "account",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Register Regular User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"firstName\": \"Regular\",\n    \"lastName\": \"User\",\n    \"email\": \"regular@example.com\",\n    \"password\": \"Password1!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/account/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "account",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Verify Admin Email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"token\": \"{{adminVerificationToken}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/account/verify-email",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "account",
+            "verify-email"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Verify Regular User Email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"token\": \"{{regularUserVerificationToken}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/account/verify-email",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "account",
+            "verify-email"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Admin Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.globals.set(\"adminToken\", jsonData.jwtToken);",
+              "pm.globals.set(\"adminUserId\", jsonData.id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"Password1!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/account/authenticate",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "account",
+            "authenticate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Regular User Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.globals.set(\"regularUserToken\", jsonData.jwtToken);",
+              "pm.globals.set(\"regularUserId\", jsonData.id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"regular@example.com\",\n    \"password\": \"Password1!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/account/authenticate",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "account",
+            "authenticate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Users (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/account",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "account"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Deactivate Regular User (Admin)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"active\": false\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/account/{{regularUserId}}/set-active",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "account",
+            "{{regularUserId}}",
+            "set-active"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Try Login with Deactivated User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"regular@example.com\",\n    \"password\": \"Password1!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/account/authenticate",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "account",
+            "authenticate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Reactivate Regular User (Admin)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"active\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/account/{{regularUserId}}/set-active",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "account",
+            "{{regularUserId}}",
+            "set-active"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Try Login with Reactivated User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var jsonData = pm.response.json();",
+              "pm.globals.set(\"regularUserToken\", jsonData.jwtToken);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"regular@example.com\",\n    \"password\": \"Password1!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/account/authenticate",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "account",
+            "authenticate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Try to Deactivate User (Regular User - Should Fail)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{regularUserToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"active\": false\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/account/{{adminUserId}}/set-active",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "account",
+            "{{adminUserId}}",
+            "set-active"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    }
+  ]
+} 

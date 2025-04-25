@@ -18,6 +18,6 @@ router.get('/', authorize('Admin'), accountController.getAll);
 router.get('/:id', authorize(), accountController.getById);
 router.post('/', authorize('Admin'), accountController.create);
 router.put('/:id', authorize(), accountController.update);
-router.delete('/:id', authorize(), accountController.delete);
+router.patch('/:id/set-active', authorize('Admin'), accountController.setUserActive);
 
 module.exports = router; 
