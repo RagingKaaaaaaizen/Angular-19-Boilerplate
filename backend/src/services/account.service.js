@@ -162,18 +162,27 @@ async function forgotPassword({ email }, origin) {
     expires: new Date(Date.now() + 24 * 60 * 60 * 1000)
   };
   
-  // Update user
-  db.updateUser(user.id, { resetToken });
+  try {
+    // Update user with reset token
+    const updatedUser = db.updateUser(user.id, { resetToken });
+    
+    if (!updatedUser) {
+      throw new Error('Failed to update user with reset token');
+    }
 
-  // Send password reset email
-  const emailResponse = await sendPasswordResetEmail(user, origin);
-  
-  return {
-    message: 'Email sent with password reset instructions',
-    emailPreview: emailResponse.previewUrl,
-    etherealUser: emailResponse.etherealUser,
-    etherealPass: emailResponse.etherealPass
-  };
+    // Send password reset email
+    const emailResponse = await sendPasswordResetEmail(updatedUser, origin);
+    
+    return {
+      message: 'Email sent with password reset instructions',
+      emailPreview: emailResponse.previewUrl,
+      etherealUser: emailResponse.etherealUser,
+      etherealPass: emailResponse.etherealPass
+    };
+  } catch (error) {
+    console.error('Error in forgotPassword:', error);
+    throw error;
+  }
 }
 
 async function validateResetToken({ token }) {
