@@ -14,7 +14,7 @@ module.exports = {
   getById,
   create,
   update,
-  delete: _delete
+  setUserActive
 };
 
 function authenticate(req, res, next) {
@@ -132,14 +132,24 @@ function update(req, res, next) {
     .catch(next);
 }
 
-function _delete(req, res, next) {
-  // Users can delete their own account and admins can delete any account
-  if (req.params.id !== req.user.id && req.user.role !== 'Admin') {
+function setUserActive(req, res, next) {
+  // Only admins can set user active status
+  if (req.user.role !== 'Admin') {
     return res.status(401).json({ message: 'Unauthorized' });
   }
 
-  accountService.delete(req.params.id)
-    .then(() => res.json({ message: 'Account deleted successfully' }))
+  const isActive = req.body.active;
+  
+  // Validate the active parameter
+  if (typeof isActive !== 'boolean') {
+    return res.status(400).json({ message: 'Active status must be a boolean value' });
+  }
+
+  accountService.setUserActive(req.params.id, isActive)
+    .then(account => res.json({ 
+      ...account, 
+      message: `Account ${isActive ? 'activated' : 'deactivated'} successfully` 
+    }))
     .catch(next);
 }
 

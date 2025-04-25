@@ -7,6 +7,13 @@ import { map, finalize } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import { Account } from '@app/_models';
 
+interface ForgotPasswordResponse {
+    message: string;
+    emailPreview?: string;
+    etherealUser?: string;
+    etherealPass?: string;
+}
+
 const baseUrl = `${environment.apiUrl}/accounts`;
 
 @Injectable({ providedIn: 'root' })
@@ -60,7 +67,13 @@ export class AccountService {
     }
     
     forgotPassword(email: string) {
-        return this.http.post(`${baseUrl}/forgot-password`, { email });
+        return this.http.post<ForgotPasswordResponse>(`${baseUrl}/forgot-password`, { email })
+            .pipe(map(response => {
+                if (response && response.message) {
+                    return response;
+                }
+                throw new Error('Invalid response from server');
+            }));
     }
     
     validateResetToken(token: string) {
@@ -72,7 +85,7 @@ export class AccountService {
     }
 
     getAll() {
-        return this.http.get<Account[]>(baseUrl);
+        return this.http.get<Account[]>(`${baseUrl}`);
     }
 
     getById(id: string) {
@@ -80,14 +93,14 @@ export class AccountService {
     }
     
     create(params) {
-        return this.http.post(baseUrl, params);
+        return this.http.post(`${baseUrl}`, params);
     }
     
     update(id, params) {
         return this.http.put(`${baseUrl}/${id}`, params)
             .pipe(map((account: any) => {
                 // update the current account if it was updated
-                if (account.id === this.accountValue.id) {
+                if (account.id === this.accountValue?.id) {
                     // publish updated account to subscribers
                     account = { ...this.accountValue, ...account };
                     this.accountSubject.next(account);
@@ -100,7 +113,7 @@ export class AccountService {
         return this.http.delete(`${baseUrl}/${id}`)
             .pipe(finalize(() => {
                 // auto logout if the logged in account was deleted
-                if (id === this.accountValue.id)
+                if (id === this.accountValue?.id)
                     this.logout();
             }));
     }

@@ -18,7 +18,7 @@ module.exports = {
   getById,
   create,
   update,
-  delete: _delete
+  setUserActive
 };
 
 async function authenticate({ email, password, ipAddress }) {
@@ -26,6 +26,11 @@ async function authenticate({ email, password, ipAddress }) {
 
   if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
     throw 'Email or password is incorrect';
+  }
+
+  // Check if user is active
+  if (!user.active) {
+    throw 'Account is inactive. Please contact an administrator';
   }
 
   // Authentication successful
@@ -162,18 +167,27 @@ async function forgotPassword({ email }, origin) {
     expires: new Date(Date.now() + 24 * 60 * 60 * 1000)
   };
   
-  // Update user
-  db.updateUser(user.id, { resetToken });
+  try {
+    // Update user with reset token
+    const updatedUser = db.updateUser(user.id, { resetToken });
+    
+    if (!updatedUser) {
+      throw new Error('Failed to update user with reset token');
+    }
 
-  // Send password reset email
-  const emailResponse = await sendPasswordResetEmail(user, origin);
-  
-  return {
-    message: 'Email sent with password reset instructions',
-    emailPreview: emailResponse.previewUrl,
-    etherealUser: emailResponse.etherealUser,
-    etherealPass: emailResponse.etherealPass
-  };
+    // Send password reset email
+    const emailResponse = await sendPasswordResetEmail(updatedUser, origin);
+    
+    return {
+      message: 'Email sent with password reset instructions',
+      emailPreview: emailResponse.previewUrl,
+      etherealUser: emailResponse.etherealUser,
+      etherealPass: emailResponse.etherealPass
+    };
+  } catch (error) {
+    console.error('Error in forgotPassword:', error);
+    throw error;
+  }
 }
 
 async function validateResetToken({ token }) {
@@ -253,8 +267,12 @@ async function update(id, params) {
   return basicDetails(updatedUser);
 }
 
-async function _delete(id) {
-  db.deleteUser(id);
+async function setUserActive(id, isActive) {
+  const user = getUser(id);
+  
+  // Update user active status
+  const updatedUser = db.updateUser(id, { active: isActive, updated: Date.now() });
+  return basicDetails(updatedUser);
 }
 
 // Helper functions
@@ -294,8 +312,8 @@ function randomTokenString() {
 }
 
 function basicDetails(user) {
-  const { id, firstName, lastName, email, role, created, updated, isVerified } = user;
-  return { id, firstName, lastName, email, role, created, updated, isVerified };
+  const { id, firstName, lastName, email, role, created, updated, isVerified, active } = user;
+  return { id, firstName, lastName, email, role, created, updated, isVerified, active };
 }
 
 async function sendVerificationEmail(user, origin) {

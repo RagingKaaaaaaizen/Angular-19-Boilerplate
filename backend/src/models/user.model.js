@@ -7,6 +7,7 @@ const schema = new Schema({
   email: { type: String, unique: true, required: true },
   passwordHash: { type: String, required: true },
   role: { type: String, required: true, default: 'User' },
+  active: { type: Boolean, default: true },
   verificationToken: String,
   verified: { type: Date },
   resetToken: {
@@ -20,6 +21,10 @@ const schema = new Schema({
 
 schema.virtual('isVerified').get(function () {
   return !!(this.verified || this.passwordReset);
+});
+
+schema.virtual('isActive').get(function () {
+  return this.active;
 });
 
 schema.set('toJSON', {
