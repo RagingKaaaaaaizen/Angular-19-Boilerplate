@@ -20,4 +20,3 @@ import { UpdateComponent } from './update.component';
     ]
 })
 export class ProfileModule { }
-

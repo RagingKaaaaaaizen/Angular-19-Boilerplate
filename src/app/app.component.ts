@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+﻿import { Component } from '@angular/core';
 
 import { AccountService } from './_services';
 import { Account, Role } from './_models';
@@ -11,6 +11,7 @@ export class AppComponent {
     constructor(private accountService: AccountService) {
         this.accountService.account.subscribe(x => this.account = x);
     }
+
     logout() {
         this.accountService.logout();
     }

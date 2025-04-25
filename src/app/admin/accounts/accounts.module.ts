@@ -7,14 +7,14 @@ import { ListComponent } from './list.component';
 import { AddEditComponent } from './add-edit.component';
 
 @NgModule({
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    AccountsRoutingModule
-  ],
-  declarations: [
-    ListComponent,
-    AddEditComponent
-  ]
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        AccountsRoutingModule
+    ],
+    declarations: [
+        ListComponent,
+        AddEditComponent
+    ]
 })
 export class AccountsModule { }
